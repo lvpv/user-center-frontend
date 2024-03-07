@@ -377,7 +377,7 @@
     },
     "payload": {
       "username": "admin",
-      "password": "ant.design",
+      "password": "admin",
       "autoLogin": true,
       "type": "account"
     },
