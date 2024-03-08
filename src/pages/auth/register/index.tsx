@@ -1,292 +1,135 @@
-import { history, Link, useRequest } from '@umijs/max';
-import { Button, Col, Form, Input, message, Popover, Progress, Row, Select, Space } from 'antd';
-import type { Store } from 'antd/es/form/interface';
-import type { FC } from 'react';
-import { useEffect, useState } from 'react';
-import type { StateType } from './service';
-import { fakeRegister } from './service';
+import { authRegister } from '@/services/auth';
+import type { ProFormInstance } from '@ant-design/pro-components';
+import { ProForm, ProFormText } from '@ant-design/pro-components';
+import { history, Link } from '@umijs/max';
+import { Button, message } from 'antd';
+import { useRef } from 'react';
 import useStyles from './style.style';
 
-const FormItem = Form.Item;
-const { Option } = Select;
-
-const passwordProgressMap: {
-  ok: 'success';
-  pass: 'normal';
-  poor: 'exception';
-} = {
-  ok: 'success',
-  pass: 'normal',
-  poor: 'exception',
-};
-const Register: FC = () => {
+export default () => {
   const { styles } = useStyles();
-  const [count, setCount]: [number, any] = useState(0);
-  const [open, setVisible]: [boolean, any] = useState(false);
-  const [prefix, setPrefix]: [string, any] = useState('86');
-  const [popover, setPopover]: [boolean, any] = useState(false);
-  const confirmDirty = false;
-  let interval: number | undefined;
+  const formRef = useRef<ProFormInstance>();
 
-  const passwordStatusMap = {
-    ok: (
-      <div className={styles.success}>
-        <span>强度：强</span>
-      </div>
-    ),
-    pass: (
-      <div className={styles.warning}>
-        <span>强度：中</span>
-      </div>
-    ),
-    poor: (
-      <div className={styles.error}>
-        <span>强度：太短</span>
-      </div>
-    ),
-  };
-
-  const [form] = Form.useForm();
-  useEffect(
-    () => () => {
-      clearInterval(interval);
-    },
-    [interval],
-  );
-  const onGetCaptcha = () => {
-    let counts = 59;
-    setCount(counts);
-    interval = window.setInterval(() => {
-      counts -= 1;
-      setCount(counts);
-      if (counts === 0) {
-        clearInterval(interval);
-      }
-    }, 1000);
-  };
-  const getPasswordStatus = () => {
-    const value = form.getFieldValue('password');
-    if (value && value.length > 9) {
-      return 'ok';
-    }
-    if (value && value.length > 5) {
-      return 'pass';
-    }
-    return 'poor';
-  };
-  const { loading: submitting, run: register } = useRequest<{
-    data: StateType;
-  }>(fakeRegister, {
-    manual: true,
-    onSuccess: (data, params) => {
-      if (data.status === 'ok') {
-        message.success('注册成功！');
-        history.push({
-          pathname: `/user/register-result?account=${params[0].email}`,
+  const handlerRegister = (values: any) => {
+    return new Promise<boolean>((resolve, reject) => {
+      authRegister(values)
+        .then(async (data: any) => {
+          console.log(data);
+          if (data > 0) {
+            await message.success('注册成功！');
+            history.replace({
+              pathname: `/auth/register-result?account=${values['username']}`,
+            });
+            return resolve(true);
+          } else {
+            await message.error('注册失败！');
+            return reject(false);
+          }
+        })
+        .catch((err) => {
+          return reject(err);
         });
-      }
-    },
-  });
-  const onFinish = (values: Store) => {
-    register(values);
+    });
   };
+
   const checkConfirm = (_: any, value: string) => {
     const promise = Promise;
-    if (value && value !== form.getFieldValue('password')) {
+    if (value && (value.length < 8 || value.length > 20)) {
+      return promise.reject('确认密码长度必须大于8位小于20位');
+    }
+    if (value && value !== formRef.current?.getFieldValue('password')) {
       return promise.reject('两次输入的密码不匹配!');
     }
     return promise.resolve();
   };
-  const checkPassword = (_: any, value: string) => {
-    const promise = Promise;
-    // 没有值的情况
-    if (!value) {
-      setVisible(!!value);
-      return promise.reject('请输入密码!');
-    }
-    // 有值的情况
-    if (!open) {
-      setVisible(!!value);
-    }
-    setPopover(!popover);
-    if (value.length < 6) {
-      return promise.reject('');
-    }
-    if (value && confirmDirty) {
-      form.validateFields(['confirm']);
-    }
-    return promise.resolve();
-  };
-  const changePrefix = (value: string) => {
-    setPrefix(value);
-  };
-  const renderPasswordProgress = () => {
-    const value = form.getFieldValue('password');
-    const passwordStatus = getPasswordStatus();
-    return value && value.length ? (
-      <div className={styles[`progress-${passwordStatus}`]}>
-        <Progress
-          status={passwordProgressMap[passwordStatus]}
-          strokeWidth={6}
-          percent={value.length * 10 > 100 ? 100 : value.length * 10}
-          showInfo={false}
-        />
-      </div>
-    ) : null;
-  };
+
   return (
     <div className={styles.main}>
-      <h3>注册</h3>
-      <Form form={form} name="UserRegister" onFinish={onFinish}>
-        <FormItem
-          name="email"
+      <div className={styles.title}>注册</div>
+      <ProForm
+        title="用户注册"
+        formRef={formRef}
+        submitter={{
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          render: (props) => {
+            return (
+              <div className={styles.buttonGroup}>
+                <Button
+                  type="primary"
+                  onClick={props.submit}
+                  // @ts-ignore
+                  loading={props.submitButtonProps?.loading}
+                >
+                  注册
+                </Button>
+                <Button onClick={props.reset} className={styles.resetButton}>
+                  重置
+                </Button>
+                <Link to="/auth/login" className={styles.loginLink}>
+                  {' '}
+                  已有账号,去登录
+                </Link>
+              </div>
+            );
+          },
+        }}
+        onFinish={(values) => {
+          return handlerRegister(values);
+        }}
+      >
+        <ProFormText
+          name="username"
+          label="用户名"
+          tooltip="用户名长度大于4位小于15位"
+          placeholder="请输入用户名"
           rules={[
             {
               required: true,
-              message: '请输入邮箱地址!',
+              message: '用户名是必填项！',
             },
             {
-              type: 'email',
-              message: '邮箱地址格式错误!',
+              type: 'string',
+              min: 4,
+              max: 15,
+              message: '用户名长度不能小于4位大于15位！',
             },
           ]}
-        >
-          <Input size="large" placeholder="邮箱" />
-        </FormItem>
-        <Popover
-          getPopupContainer={(node) => {
-            if (node && node.parentNode) {
-              return node.parentNode as HTMLElement;
-            }
-            return node;
-          }}
-          content={
-            open && (
-              <div
-                style={{
-                  padding: '4px 0',
-                }}
-              >
-                {passwordStatusMap[getPasswordStatus()]}
-                {renderPasswordProgress()}
-                <div
-                  style={{
-                    marginTop: 10,
-                  }}
-                >
-                  <span>请至少输入 6 个字符。请不要使用容易被猜到的密码。</span>
-                </div>
-              </div>
-            )
-          }
-          overlayStyle={{
-            width: 240,
-          }}
-          placement="right"
-          open={open}
-        >
-          <FormItem
-            name="password"
-            className={
-              form.getFieldValue('password') &&
-              form.getFieldValue('password').length > 0 &&
-              styles.password
-            }
-            rules={[
-              {
-                validator: checkPassword,
-              },
-            ]}
-          >
-            <Input size="large" type="password" placeholder="至少6位密码，区分大小写" />
-          </FormItem>
-        </Popover>
-        <FormItem
-          name="confirm"
+        />
+
+        <ProFormText.Password
+          placeholder="请输入密码"
+          label="密码"
+          tooltip="密码长度大于8位小于20位"
+          name="password"
           rules={[
             {
               required: true,
-              message: '确认密码',
+              message: '密码是必填项！',
+            },
+            {
+              type: 'string',
+              min: 8,
+              max: 20,
+              message: '密码长度不能小于8位大于20位！',
+            },
+          ]}
+        />
+        <ProFormText.Password
+          label="确认密码"
+          tooltip="密码长度大于8位小于20位"
+          placeholder="请输入确认密码"
+          name="checkPassword"
+          rules={[
+            {
+              required: true,
+              message: '密码是必填项！',
             },
             {
               validator: checkConfirm,
             },
           ]}
-        >
-          <Input size="large" type="password" placeholder="确认密码" />
-        </FormItem>
-        <FormItem
-          name="mobile"
-          rules={[
-            {
-              required: true,
-              message: '请输入手机号!',
-            },
-            {
-              pattern: /^\d{11}$/,
-              message: '手机号格式错误!',
-            },
-          ]}
-        >
-          <Space.Compact style={{ width: '100%' }}>
-            <Select
-              size="large"
-              value={prefix}
-              onChange={changePrefix}
-              style={{
-                width: '30%',
-              }}
-            >
-              <Option value="86">+86</Option>
-              <Option value="87">+87</Option>
-            </Select>
-
-            <Input size="large" placeholder="手机号" />
-          </Space.Compact>
-        </FormItem>
-        <Row gutter={8}>
-          <Col span={16}>
-            <FormItem
-              name="captcha"
-              rules={[
-                {
-                  required: true,
-                  message: '请输入验证码!',
-                },
-              ]}
-            >
-              <Input size="large" placeholder="验证码" />
-            </FormItem>
-          </Col>
-          <Col span={8}>
-            <Button
-              size="large"
-              disabled={!!count}
-              className={styles.getCaptcha}
-              onClick={onGetCaptcha}
-            >
-              {count ? `${count} s` : '获取验证码'}
-            </Button>
-          </Col>
-        </Row>
-        <FormItem>
-          <div className={styles.footer}>
-            <Button
-              size="large"
-              loading={submitting}
-              className={styles.submit}
-              type="primary"
-              htmlType="submit"
-            >
-              <span>注册</span>
-            </Button>
-            <Link to="/user/login">
-              <span>使用已有账户登录</span>
-            </Link>
-          </div>
-        </FormItem>
-      </Form>
+        />
+      </ProForm>
     </div>
   );
 };
-export default Register;

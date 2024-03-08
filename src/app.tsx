@@ -10,6 +10,7 @@ import { requestConfig } from './requestConfig';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/auth/login';
+const WHITE_LIST: string[] = [loginPath, '/auth/register', '/auth/register-result'];
 
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
@@ -31,7 +32,7 @@ export async function getInitialState(): Promise<{
   };
   // 如果不是登录页面，执行
   const { location } = history;
-  if (![loginPath, '/auth/register', '/auth/register-result'].includes(location.pathname)) {
+  if (!WHITE_LIST.includes(location.pathname)) {
     const currentUser = await fetchUserInfo();
     return {
       currentUser,
@@ -61,7 +62,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     onPageChange: () => {
       const { location } = history;
       // 如果没有登录，重定向到 login
-      if (!initialState?.currentUser && location.pathname !== loginPath) {
+      if (!initialState?.currentUser && !WHITE_LIST.includes(location.pathname)) {
         history.push(loginPath);
       }
     },

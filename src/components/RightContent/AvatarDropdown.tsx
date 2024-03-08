@@ -1,3 +1,4 @@
+import { authLogout } from '@/services/auth';
 import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import { Spin } from 'antd';
@@ -40,8 +41,16 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
   /**
    * 退出登录，并且将当前的 url 保存
    */
+  const { initialState, setInitialState } = useModel('@@initialState');
   const loginOut = async () => {
-    // await outLogin();
+    await authLogout();
+    flushSync(() => {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      setInitialState((s) => ({
+        ...s,
+        currentUser: undefined,
+      }));
+    });
     const { search, pathname } = window.location;
     const urlParams = new URL(window.location.href).searchParams;
     /** 此方法会跳转到 redirect 参数所在的位置 */
@@ -57,8 +66,6 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
     }
   };
   const { styles } = useStyles();
-
-  const { initialState, setInitialState } = useModel('@@initialState');
 
   const onMenuClick = useCallback(
     (event: any) => {

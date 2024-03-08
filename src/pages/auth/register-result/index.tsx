@@ -9,13 +9,10 @@ const RegisterResult: React.FC<Record<string, unknown>> = () => {
 
   const actions = (
     <div className={styles.actions}>
-      <a href="">
+      <Link to="/auth/login" replace>
         <Button size="large" type="primary">
-          <span>查看邮箱</span>
+          去登录
         </Button>
-      </a>
-      <Link to="/">
-        <Button size="large">返回首页</Button>
       </Link>
     </div>
   );
