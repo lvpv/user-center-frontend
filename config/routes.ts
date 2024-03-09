@@ -16,14 +16,13 @@ export default [
     layout: false,
     routes: [
       {
-        path: '/auth/login',
-        layout: false,
-        name: '登录页',
-        component: './auth/login',
-      },
-      {
         path: '/auth',
         redirect: '/auth/login',
+      },
+      {
+        path: '/auth/login',
+        name: '登录页',
+        component: './auth/login',
       },
       {
         name: '注册结果页',
@@ -47,23 +46,31 @@ export default [
     path: '/welcome',
     name: '欢迎页',
     icon: 'smile',
-    component: 'Welcome',
+    component: './welcome',
   },
   {
     path: '/admin',
     name: '管理页',
     icon: 'CrownOutlined',
-    component: 'Admin',
+    component: './admin',
   },
   {
-    path: '/center',
+    path: '/user',
     icon: 'UserOutlined',
     name: '用户中心',
     routes: [
       {
-        path: '/center/list',
-        name: '用户列表',
-        component: './user/list',
+        path: '/user',
+        redirect: '/user/manage',
+      },
+      {
+        path: '/user/manage',
+        name: '用户管理',
+        component: './user/manage',
+      },
+      {
+        component: '404',
+        path: '/user/*',
       },
     ],
   },

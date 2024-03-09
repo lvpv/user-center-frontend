@@ -105,7 +105,7 @@ const Login: React.FC = () => {
           <>
             <ProFormText
               name="username"
-              initialValue="lvpb"
+              initialValue="admin"
               fieldProps={{
                 size: 'large',
                 prefix: <UserOutlined />,
