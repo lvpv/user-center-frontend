@@ -1,42 +1,31 @@
 import { request } from '@umijs/max';
-// @ts-ignore
-import { AxiosRequestConfig } from 'axios';
 
-export async function authLogin(data: AUTH.LoginRequest, options: AxiosRequestConfig<any> = {}) {
+export async function authLogin(data: AUTH.LoginRequest) {
   return request<AUTH.UserResponse>('/auth/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     data,
-    ...(options || {}),
   });
 }
 
-export async function authRegister(
-  data: AUTH.RegisterRequest,
-  options: AxiosRequestConfig<any> = {},
-) {
+export async function authRegister(data: AUTH.RegisterRequest) {
   return request<number>('/auth/register', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     data,
-    ...(options || {}),
   });
 }
 
-export async function getUserInfo(options?: { [key: string]: any }) {
+export async function getUserInfo() {
   return request<AUTH.UserResponse>('/auth/info', {
+    headers: { 'Content-Type': 'application/json' },
     method: 'GET',
-    ...(options || {}),
   });
 }
 
-export async function authLogout(options?: { [key: string]: any }) {
+export async function authLogout() {
   return request<AUTH.UserResponse>('/auth/logout', {
+    headers: { 'Content-Type': 'application/json' },
     method: 'GET',
-    ...(options || {}),
   });
 }

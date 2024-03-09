@@ -1,219 +1,169 @@
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
-import {
-  FooterToolbar,
-  PageContainer,
-  ProDescriptions,
-  ProTable,
-} from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
-import React, { useCallback, useRef, useState } from 'react';
-import CreateForm from '../components/CreateForm';
-import UpdateForm from '../components/UpdateForm';
-const TableList: React.FC = () => {
+import { searchUser } from '@/services/user/user';
+import { PlusOutlined } from '@ant-design/icons';
+import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
+import { Button, Image, Table, Tag } from 'antd';
+import React, { useRef } from 'react';
+
+const columns: ProColumns<AUTH.UserResponse>[] = [
+  {
+    dataIndex: 'index',
+    title: '序号',
+    valueType: 'index',
+    align: 'center',
+    search: false,
+    width: 50,
+  },
+  {
+    dataIndex: 'id',
+    title: '编号',
+    align: 'center',
+    search: false,
+    width: 80,
+  },
+  {
+    dataIndex: 'username',
+    title: '用户名',
+    ellipsis: true,
+    align: 'center',
+    width: 100,
+    copyable: true,
+  },
+  {
+    dataIndex: 'nickname',
+    title: '昵称',
+    ellipsis: true,
+    align: 'center',
+    search: false,
+    copyable: true,
+  },
+  {
+    dataIndex: 'avatar',
+    title: '头像',
+    search: false,
+    align: 'center',
+    render: (_, record) => <Image src={record.avatar} width={64} />,
+  },
+  {
+    dataIndex: 'phone',
+    title: '电话',
+    ellipsis: true,
+    search: false,
+    align: 'center',
+    copyable: true,
+  },
+  {
+    dataIndex: 'email',
+    title: '邮箱',
+    ellipsis: true,
+    search: false,
+    align: 'center',
+    copyable: true,
+    width: 220,
+  },
+  {
+    dataIndex: 'gender',
+    title: '性别',
+    align: 'center',
+    ellipsis: true,
+    search: false,
+    valueEnum: {
+      0: { text: '未知', status: 'Warning' },
+      1: { text: '男', status: 'Success' },
+      2: { text: '女', status: 'Error' },
+    },
+  },
+  {
+    dataIndex: 'role',
+    title: '角色',
+    search: false,
+    align: 'center',
+    valueEnum: {
+      0: { text: '普通用户', status: 'Warning' },
+      1: { text: '管理员', status: 'Success' },
+    },
+  },
+  {
+    dataIndex: 'status',
+    align: 'center',
+    title: '状态',
+    search: false,
+    render: (_, record) =>
+      record?.status && record?.status === 0 ? (
+        <Tag color="success">正常</Tag>
+      ) : (
+        <Tag color="error">禁用</Tag>
+      ),
+  },
+  {
+    title: '创建时间',
+    sorter: true,
+    dataIndex: 'createTime',
+    valueType: 'dateTime',
+    search: false,
+    width: 200,
+    align: 'center',
+  },
+  {
+    title: '操作',
+    valueType: 'option',
+    key: 'option',
+    align: 'center',
+    fixed: 'right',
+    render: (_, record) => [
+      <Button type="link" key="editor">
+        编辑-{record?.id}
+      </Button>,
+      <Button type="link" key="delete" danger>
+        删除
+      </Button>,
+    ],
+  },
+];
+
+const UserManage: React.FC = () => {
   const actionRef = useRef<ActionType>();
-  const [showDetail, setShowDetail] = useState<boolean>(false);
-  const [currentRow, setCurrentRow] = useState<any>();
-  const [selectedRowsState, setSelectedRows] = useState<any>([]);
-
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
-
-  const [messageApi, contextHolder] = message.useMessage();
-  const { run: delRun, loading } = useRequest({
-    manual: true,
-    onSuccess: () => {
-      setSelectedRows([]);
-      actionRef.current?.reloadAndRest?.();
-      messageApi.success('Deleted successfully and will refresh soon');
-    },
-    onError: () => {
-      messageApi.error('Delete failed, please try again');
-    },
-  });
-  const columns: ProColumns<any>[] = [
-    {
-      title: '规则名称',
-      dataIndex: 'name',
-      tip: 'The rule name is the unique key',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
-    },
-    {
-      title: '描述',
-      dataIndex: 'desc',
-      valueType: 'textarea',
-    },
-    {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: '关闭',
-          status: 'Default',
-        },
-        1: {
-          text: '运行中',
-          status: 'Processing',
-        },
-        2: {
-          text: '已上线',
-          status: 'Success',
-        },
-        3: {
-          text: '异常',
-          status: 'Error',
-        },
-      },
-    },
-    {
-      title: '上次调度时间',
-      sorter: true,
-      dataIndex: 'updatedAt',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
-      },
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <UpdateForm
-          trigger={<a>配置</a>}
-          key="config"
-          onOk={actionRef.current?.reload}
-          values={record}
-        />,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          订阅警报
-        </a>,
-      ],
-    },
-  ];
-
-  /**
-   *  Delete node
-   * @zh-CN 删除节点
-   *
-   * @param selectedRows
-   */
-  const handleRemove = useCallback(
-    async (selectedRows: any[]) => {
-      if (!selectedRows?.length) {
-        messageApi.warning('请选择删除项');
-        return;
-      }
-      await delRun({
-        data: {
-          key: selectedRows.map((row) => row.key),
-        },
-      });
-    },
-    [delRun],
-  );
   return (
     <PageContainer>
-      {contextHolder}
-      <ProTable<any, any>
-        headerTitle={'查询表格'}
-        actionRef={actionRef}
-        rowKey="key"
-        search={{
-          labelWidth: 120,
-        }}
-        toolBarRender={() => [<CreateForm key="create" reload={actionRef.current?.reload} />]}
+      <ProTable<AUTH.UserResponse>
         columns={columns}
+        actionRef={actionRef}
+        bordered
+        request={async (params) => {
+          const users = await searchUser(params?.username);
+          return { data: users };
+        }}
+        columnEmptyText="无"
         rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
+          // 自定义选择项参考: https://ant.design/components/table-cn/#components-table-demo-row-selection-custom
+          // 注释该行则默认不显示下拉选项
+          alwaysShowAlert: true,
+          selections: [Table.SELECTION_ALL, Table.SELECTION_INVERT, Table.SELECTION_NONE],
         }}
-      />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计{' '}
-                {selectedRowsState.reduce((pre: any, item: any) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
+        rowKey="id"
+        search={{ labelWidth: 'auto' }}
+        options={{ setting: { listsHeight: 500 } }}
+        pagination={{
+          pageSize: 10,
+          current: 1,
+          onChange: (page, pageSize) => console.log(page, pageSize),
+        }}
+        dateFormatter="string"
+        headerTitle="用户管理"
+        toolBarRender={() => [
           <Button
-            loading={loading}
+            key="button"
+            icon={<PlusOutlined />}
             onClick={() => {
-              handleRemove(selectedRowsState);
+              actionRef.current?.reload();
             }}
+            type="primary"
           >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
-
-      <Drawer
-        width={600}
-        open={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        {currentRow?.name && (
-          <ProDescriptions<any>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<any>[]}
-          />
-        )}
-      </Drawer>
+            新建
+          </Button>,
+        ]}
+      />
     </PageContainer>
   );
 };
-export default TableList;
+
+export default UserManage;
