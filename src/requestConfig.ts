@@ -1,6 +1,8 @@
 ﻿import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
 import { message, notification } from 'antd';
+//@ts-ignore
+import { AxiosResponse } from 'axios';
 
 // 错误处理方案： 错误类型
 enum ErrorShowType {
@@ -17,6 +19,13 @@ interface ResponseStructure {
   errorCode?: number;
   errorMessage?: string;
   showType?: ErrorShowType;
+}
+
+interface Result<T> {
+  code: number;
+  msg: string;
+  data: T;
+  desc: string;
 }
 
 /**
@@ -97,14 +106,14 @@ export const requestConfig: RequestConfig = {
 
   // 响应拦截器
   responseInterceptors: [
-    (response) => {
+    (response: AxiosResponse<Result<any>>) => {
       // 拦截响应数据，进行个性化处理
-      const { data } = response as unknown as ResponseStructure;
+      const { data } = response; //  as unknown as ResponseStructure
 
-      if (data?.success === false) {
+      if (!data || data?.code !== 0) {
         message.error('请求失败！');
       }
-      return response;
+      return data;
     },
   ],
 };

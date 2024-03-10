@@ -1,4 +1,6 @@
 import { request } from '@umijs/max';
+// @ts-ignore
+import { AxiosRequestConfig } from 'axios';
 
 export async function authLogin(data: AUTH.LoginRequest) {
   return request<AUTH.UserResponse>('/auth/login', {
@@ -16,10 +18,11 @@ export async function authRegister(data: AUTH.RegisterRequest) {
   });
 }
 
-export async function getUserInfo() {
+export async function getUserInfo(options: AxiosRequestConfig<any>) {
   return request<AUTH.UserResponse>('/auth/info', {
     headers: { 'Content-Type': 'application/json' },
     method: 'GET',
+    ...(options || {}),
   });
 }
 

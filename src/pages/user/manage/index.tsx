@@ -11,21 +11,18 @@ const columns: ProColumns<AUTH.UserResponse>[] = [
     valueType: 'index',
     align: 'center',
     search: false,
-    width: 50,
   },
   {
     dataIndex: 'id',
     title: '编号',
     align: 'center',
     search: false,
-    width: 80,
   },
   {
     dataIndex: 'username',
     title: '用户名',
     ellipsis: true,
     align: 'center',
-    width: 100,
     copyable: true,
   },
   {
@@ -41,6 +38,7 @@ const columns: ProColumns<AUTH.UserResponse>[] = [
     title: '头像',
     search: false,
     align: 'center',
+    width: 80,
     render: (_, record) => <Image src={record.avatar} width={64} />,
   },
   {
@@ -58,7 +56,6 @@ const columns: ProColumns<AUTH.UserResponse>[] = [
     search: false,
     align: 'center',
     copyable: true,
-    width: 220,
   },
   {
     dataIndex: 'gender',
@@ -100,7 +97,6 @@ const columns: ProColumns<AUTH.UserResponse>[] = [
     dataIndex: 'createTime',
     valueType: 'dateTime',
     search: false,
-    width: 200,
     align: 'center',
   },
   {
@@ -108,14 +104,11 @@ const columns: ProColumns<AUTH.UserResponse>[] = [
     valueType: 'option',
     key: 'option',
     align: 'center',
+    width: 120,
     fixed: 'right',
     render: (_, record) => [
-      <Button type="link" key="editor">
-        编辑-{record?.id}
-      </Button>,
-      <Button type="link" key="delete" danger>
-        删除
-      </Button>,
+      <span key="editor">编辑-{record.id}</span>,
+      <span key="delete">删除</span>,
     ],
   },
 ];
@@ -128,6 +121,7 @@ const UserManage: React.FC = () => {
         columns={columns}
         actionRef={actionRef}
         bordered
+        scroll={{ x: 'max-content' }}
         request={async (params) => {
           const users = await searchUser(params?.username);
           return { data: users };
