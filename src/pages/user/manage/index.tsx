@@ -1,5 +1,5 @@
 import { searchUser } from '@/services/user/user';
-import { PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, ExportOutlined, PlusOutlined } from '@ant-design/icons';
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Image, Table, Tag } from 'antd';
 import React, { useRef } from 'react';
@@ -145,14 +145,21 @@ const UserManage: React.FC = () => {
         headerTitle="用户管理"
         toolBarRender={() => [
           <Button
-            key="button"
+            key="add"
+            ghost
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => {
               actionRef.current?.reload();
             }}
-            type="primary"
           >
             新建
+          </Button>,
+          <Button key="batchDelete" icon={<DeleteOutlined />} danger>
+            批量删除
+          </Button>,
+          <Button key="batchDelete" icon={<ExportOutlined />} type="dashed">
+            导出
           </Button>,
         ]}
       />
