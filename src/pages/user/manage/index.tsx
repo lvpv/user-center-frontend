@@ -145,7 +145,7 @@ const UserManage: React.FC = () => {
         bordered
         scroll={{ x: 'max-content' }}
         request={async (params) => {
-          const users = await searchUser(params?.username);
+          const users = await searchUser({ username: params?.username });
           return { data: users };
         }}
         columnEmptyText="无"

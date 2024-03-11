@@ -49,28 +49,21 @@ const Login: React.FC = () => {
   const { setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
   const handleSubmit = async (values: AUTH.LoginRequest) => {
-    try {
-      // 登录
-      const user = await authLogin({ ...values });
-      if (user) {
-        const defaultLoginSuccessMessage = '登录成功！';
-        message.success(defaultLoginSuccessMessage);
-        // await fetchUserInfo();
-        flushSync(() => {
-          setInitialState((s) => ({
-            ...s,
-            currentUser: user,
-          }));
-        });
-        const urlParams = new URL(window.location.href).searchParams;
-        window.location.href = urlParams.get('redirect') || '/';
-        return;
-      }
-      throw new Error('用户名或密码错误!');
-    } catch (error) {
-      const defaultLoginFailureMessage = '用户名或密码错误！';
-      console.log(error);
-      message.error(defaultLoginFailureMessage);
+    // 登录
+    const user = await authLogin({ ...values });
+    if (user) {
+      const defaultLoginSuccessMessage = '登录成功！';
+      message.success(defaultLoginSuccessMessage);
+      // await fetchUserInfo();
+      flushSync(() => {
+        setInitialState((s) => ({
+          ...s,
+          currentUser: user,
+        }));
+      });
+      const urlParams = new URL(window.location.href).searchParams;
+      window.location.href = urlParams.get('redirect') || '/';
+      return;
     }
   };
   return (

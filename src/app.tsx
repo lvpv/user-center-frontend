@@ -20,6 +20,7 @@ export async function getInitialState(): Promise<{
   currentUser?: AUTH.UserResponse;
   loading?: boolean;
 }> {
+  console.log('getInitialState');
   const fetchUserInfo = async () => {
     try {
       return await getUserInfo({
@@ -60,6 +61,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     },
     footerRender: () => <Footer />,
     onPageChange: () => {
+      console.log('onPageChange');
       const { location } = history;
       // 如果没有登录，重定向到 login
       if (!initialState?.currentUser && !WHITE_LIST.includes(location.pathname)) {

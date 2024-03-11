@@ -14,7 +14,6 @@ export default () => {
     return new Promise<boolean>((resolve, reject) => {
       authRegister(values)
         .then(async (data: any) => {
-          console.log(data);
           if (data > 0) {
             await message.success('注册成功！');
             history.replace({

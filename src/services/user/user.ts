@@ -1,19 +1,9 @@
 import { request } from '@umijs/max';
 
-export async function searchUser(username?: string) {
-  let url = '/user/search';
-  if (username) {
-    url = `/user/search?username=${username}`;
-  }
-  return request<AUTH.UserResponse[]>(url, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
+export async function searchUser(params?: { username: string }) {
+  return request<AUTH.UserResponse[]>('/user/search', { method: 'GET', params });
 }
 
 export async function deleteUser(id: number) {
-  return request<void>(`/user/delete/${id}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-  });
+  return request<void>(`/user/delete/${id}`, { method: 'DELETE', skipErrorHandler: true });
 }
